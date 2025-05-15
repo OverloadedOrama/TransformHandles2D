@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://cc0p087mukh0n"]
+
+[ext_resource type="Script" uid="uid://caob58qg8qldp" path="res://transform_handles_2d.gd" id="1_byr6y"]
+[ext_resource type="Texture2D" uid="uid://mer83ugtpi32" path="res://icon.svg" id="2_2n5jb"]
+
+[node name="TransformHandles2D" type="Node2D"]
+script = ExtResource("1_byr6y")
+texture = ExtResource("2_2n5jb")

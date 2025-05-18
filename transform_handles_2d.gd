@@ -23,6 +23,7 @@ var preview_transform := Transform2D()
 var active_handle: TransformHandle
 var handles: Array[TransformHandle] = [
 	TransformHandle.new(TransformHandle.Type.MOVE),  # Not a visible handle
+	TransformHandle.new(TransformHandle.Type.PIVOT),
 	TransformHandle.new(TransformHandle.Type.SCALE, Vector2(0, 0)),  # Top left
 	TransformHandle.new(TransformHandle.Type.SCALE, Vector2(0.5, 0)),  # Center top
 	TransformHandle.new(TransformHandle.Type.SCALE, Vector2(1, 0)),  # Top right
@@ -48,7 +49,7 @@ var pivot := Vector2.ZERO
 
 
 class TransformHandle:
-	enum Type { SCALE, ROTATE, SKEW, MOVE }
+	enum Type { SCALE, ROTATE, SKEW, MOVE, PIVOT }
 
 	var type := Type.SCALE
 	var pos := Vector2(0.5, 0.5)
@@ -91,6 +92,8 @@ func _input(event: InputEvent) -> void:
 	if is_instance_valid(hovered_handle):
 		if hovered_handle.type == TransformHandle.Type.MOVE:
 			Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+		elif hovered_handle.type == TransformHandle.Type.PIVOT:
+			Input.set_default_cursor_shape(Input.CURSOR_MOVE)
 		else:
 			var cursor_shape := Input.CURSOR_POINTING_HAND
 			if hovered_handle.type != TransformHandle.Type.ROTATE:
@@ -132,10 +135,14 @@ func _draw() -> void:
 			draw_circle(pos, HANDLE_RADIUS, Color.ORANGE)
 		elif handle.type == TransformHandle.Type.SKEW:
 			draw_circle(pos, HANDLE_RADIUS, Color.GREEN)
+		elif handle.type == TransformHandle.Type.PIVOT:
+			draw_circle(pos, HANDLE_RADIUS, Color.WHITE)
 
 
 func _get_hovered_handle(mouse_pos: Vector2) -> TransformHandle:
 	for handle in handles:
+		if handle.type == TransformHandle.Type.MOVE:
+			continue
 		if get_handle_position(handle).distance_to(mouse_pos) < HANDLE_RADIUS:
 			return handle
 	return null
@@ -170,6 +177,8 @@ func _handle_mouse_drag(mouse_pos: Vector2) -> void:
 			preview_transform = apply_rotate(start_transform, mouse_pos)
 		TransformHandle.Type.SKEW:
 			preview_transform = apply_shear(start_transform, delta, active_handle)
+		TransformHandle.Type.PIVOT:
+			handle_pivot_drag(mouse_pos, start_transform, active_handle)
 	queue_redraw()
 
 
@@ -290,6 +299,13 @@ func apply_shear(t: Transform2D, delta: Vector2, handle: TransformHandle) -> Tra
 
 	# Apply the shear matrix in local space around pivot
 	return transform_around(t, shear_matrix, pivot)
+
+
+func handle_pivot_drag(mouse_pos: Vector2, t: Transform2D, handle: TransformHandle) -> void:
+	var image_size := transformed_image.get_size() as Vector2
+	var local_mouse := t.affine_inverse() * mouse_pos
+	pivot = local_mouse
+	handle.pos = pivot / image_size
 
 
 ## Checks if [param angle] is between [param lower] and [param upper] degrees.

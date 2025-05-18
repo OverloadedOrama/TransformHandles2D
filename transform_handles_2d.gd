@@ -78,7 +78,11 @@ func _ready() -> void:
 	if is_instance_valid(texture):
 		var icon_image := texture.get_image()
 		transformed_image = Image.create_from_data(
-			texture.get_width(), texture.get_height(), false, icon_image.get_format(), icon_image.get_data()
+			texture.get_width(),
+			texture.get_height(),
+			false,
+			icon_image.get_format(),
+			icon_image.get_data()
 		)
 	else:
 		transformed_image = null
